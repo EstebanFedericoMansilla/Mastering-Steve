@@ -100,6 +100,37 @@ header {
     align-items: center;
 }
 
+/* Preset Dropdown */
+.preset-dropdown-container {
+    display: inline-block;
+    position: relative;
+}
+
+.preset-select {
+    background: #1a1a1d;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; 
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    outline: none;
+    transition: all 0.2s;
+    height: 100%; /* Match buttons */
+}
+
+.preset-select:hover {
+    border-color: var(--accent-eq);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+}
+
+.preset-select option {
+    background: #1a1a1d;
+    color: #fff;
+    padding: 10px;
+}
+
 .meter-container .label {
     font-size: 0.7rem;
     color: var(--text-dim);
