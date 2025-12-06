@@ -81,6 +81,96 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     });
 
+    // --- Genre Presets Logic ---
+    const genreSelect = document.getElementById('genre-select');
+
+    const genrePresets = {
+        rock: {
+            subtractive_eq: { low_cut: 40, mid_dip: -2, high_cut: 19000 },
+            additive_eq: { low_boost: 3, presence: 2, air: 2 },
+            compression: { threshold: -18, ratio: 4, makeup: 3 },
+            saturation: { drive: 30, type: 'tube' },
+            limiter: { ceiling: -0.2, gain: 2 }
+        },
+        pop: {
+            subtractive_eq: { low_cut: 30, mid_dip: -1, high_cut: 20000 },
+            additive_eq: { low_boost: 2, presence: 3, air: 4 },
+            compression: { threshold: -20, ratio: 2.5, makeup: 2 },
+            saturation: { drive: 15, type: 'tape' },
+            limiter: { ceiling: -0.1, gain: 3 }
+        },
+        country: {
+            subtractive_eq: { low_cut: 45, mid_dip: -1.5, high_cut: 18000 },
+            additive_eq: { low_boost: 2, presence: 3.5, air: 1.5 },
+            compression: { threshold: -15, ratio: 3, makeup: 2 },
+            saturation: { drive: 20, type: 'tube' },
+            limiter: { ceiling: -0.5, gain: 2 }
+        },
+        reggaeton: {
+            subtractive_eq: { low_cut: 25, mid_dip: 0, high_cut: 18500 },
+            additive_eq: { low_boost: 5, presence: 1, air: 2 },
+            compression: { threshold: -22, ratio: 3.5, makeup: 3 },
+            saturation: { drive: 40, type: 'tape' },
+            limiter: { ceiling: -0.1, gain: 4 }
+        },
+        classical: {
+            subtractive_eq: { low_cut: 20, mid_dip: 0, high_cut: 20000 },
+            additive_eq: { low_boost: 0, presence: 1, air: 1 },
+            compression: { threshold: -10, ratio: 1.5, makeup: 1 },
+            saturation: { drive: 0, type: 'tube' },
+            limiter: { ceiling: -0.5, gain: 0.5 }
+        },
+        youtube: { // Clean voice focused
+            subtractive_eq: { low_cut: 90, mid_dip: -2, high_cut: 16000 },
+            additive_eq: { low_boost: 1, presence: 4, air: 1 },
+            compression: { threshold: -24, ratio: 4, makeup: 4 },
+            saturation: { drive: 10, type: 'tape' },
+            limiter: { ceiling: -1.0, gain: 3 }
+        }
+    };
+
+    genreSelect.addEventListener('change', (e) => {
+        const genre = e.target.value;
+        if (genre === 'default' || !genrePresets[genre]) return;
+
+        const p = genrePresets[genre];
+
+        // Apply values to DOM
+        document.getElementById('sub-low-freq').value = p.subtractive_eq.low_cut;
+        document.getElementById('sub-mid-gain').value = p.subtractive_eq.mid_dip;
+        document.getElementById('sub-high-freq').value = p.subtractive_eq.high_cut;
+
+        document.getElementById('add-low-gain').value = p.additive_eq.low_boost;
+        document.getElementById('add-mid-gain').value = p.additive_eq.presence;
+        document.getElementById('add-high-gain').value = p.additive_eq.air;
+
+        document.getElementById('comp-thresh').value = p.compression.threshold;
+        document.getElementById('comp-ratio').value = p.compression.ratio;
+        document.getElementById('comp-makeup').value = p.compression.makeup;
+
+        document.getElementById('sat-drive').value = p.saturation.drive;
+        // Update Saturation Type UI
+        const satType = p.saturation.type;
+        document.querySelectorAll('.switch-btn').forEach(btn => {
+            if (btn.dataset.val === satType) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        document.getElementById('lim-ceiling').value = p.limiter.ceiling;
+        document.getElementById('lim-gain').value = p.limiter.gain;
+
+        // Update Displays
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            updateValueDisplay(input);
+        });
+
+        // Update Audio Engine
+        if (audioCtx) updateAudioParams();
+
+        // Reset select to prompt
+        // genreSelect.value = 'default'; 
+    });
+
     // --- 1. Initialization ---
     btnLoad.addEventListener('click', () => fileInput.click());
 
