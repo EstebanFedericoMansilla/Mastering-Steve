@@ -7,204 +7,404 @@
     <title>Mastering Steve | Audio Processor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="wizard.css">
 </head>
 
 <body>
-    <div class="app-container">
-        <header>
-            <div class="logo">
-                <div class="led-indicator active"></div>
-                <h1>MASTERING<span class="highlight">STEVE</span></h1>
+    <div class="logo">
+        <div class="led-indicator active"></div>
+        <h1>MASTERING<span class="highlight">STEVE</span></h1>
+    </div>
+    <div class="master-controls">
+        <div class="transport">
+            <input type="file" id="audio-upload" accept="audio/*" style="display: none;">
+            <button id="btn-load" class="btn-control">LOAD TRACK</button>
+            <button id="btn-play" class="btn-control" disabled>PLAY</button>
+            <button id="btn-export" class="btn-control" disabled>EXPORT DEMO (60 SEGUNDOS)</button>
+            <button id="btn-save-preset" class="btn-control" disabled>SAVE PRESET</button>
+            <div class="preset-dropdown-container">
+                <select id="genre-select" class="btn-control preset-select">
+                    <option value="default">Load Genre Preset...</option>
+                    <option value="rock">🎸 Rock</option>
+                    <option value="pop">✨ Pop</option>
+                    <option value="country">🤠 Country</option>
+                    <option value="reggaeton">🔥 Reggaeton</option>
+                    <option value="classical">🎻 Classical</option>
+                    <option value="youtube">🎙️ YouTuber / Voice</option>
+                </select>
+                <select id="target-select" class="btn-control preset-select target-selector">
+                    <option value="default">Target Output...</option>
+                    <option value="spotify">🟢 Spotify (-14 LUFS)</option>
+                    <option value="youtube">🔴 YouTube (-14 LUFS)</option>
+                    <option value="apple">🍎 Apple Music (-16 LUFS)</option>
+                    <option value="cd">💿 CD / Club (-9 LUFS)</option>
+                </select>
             </div>
-            <div class="master-controls">
-                <div class="transport">
-                    <input type="file" id="audio-upload" accept="audio/*" style="display: none;">
-                    <button id="btn-load" class="btn-control">LOAD TRACK</button>
-                    <button id="btn-play" class="btn-control" disabled>PLAY</button>
-                    <button id="btn-export" class="btn-control" disabled>EXPORT DEMO (50%)</button>
-                    <button id="btn-save-preset" class="btn-control" disabled>SAVE PRESET</button>
-                    <div class="preset-dropdown-container">
-                        <select id="genre-select" class="btn-control preset-select">
-                            <option value="default">Load Genre Preset...</option>
-                            <option value="rock">🎸 Rock</option>
-                            <option value="pop">✨ Pop</option>
-                            <option value="country">🤠 Country</option>
-                            <option value="reggaeton">🔥 Reggaeton</option>
-                            <option value="classical">🎻 Classical</option>
-                            <option value="youtube">🎙️ YouTuber / Voice</option>
-                        </select>
+            <button id="btn-buy" class="btn-premium">GET FULL MASTER — $9</button>
+        </div>
+        <div class="separator"></div>
+        <button id="bypass-all" class="btn-toggle">BYPASS ALL</button>
+        <div class="meter-container">
+            <span class="label">OUT</span>
+            <div class="meter-bar">
+                <div class="meter-fill" id="master-out-l"></div>
+            </div>
+            <div class="meter-bar">
+                <div class="meter-fill" id="master-out-r"></div>
+            </div>
+        </div>
+    </div>
+    </header>
+
+
+
+    <main class="rack">
+        <!-- 1. Subtractive EQ -->
+        <section class="module" id="subtractive-eq">
+            <div class="module-header">
+                <h2>EQ SUSTRACTIVA</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Low Cut</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="20" max="500" value="80" class="knob" id="sub-low-freq">
+                        <span class="value-display">80 Hz</span>
                     </div>
-                    <button id="btn-buy" class="btn-premium">GET FULL MASTER — $9</button>
                 </div>
-                <div class="separator"></div>
-                <button id="bypass-all" class="btn-toggle">BYPASS ALL</button>
-                <div class="meter-container">
-                    <span class="label">OUT</span>
-                    <div class="meter-bar">
-                        <div class="meter-fill" id="master-out-l"></div>
+                <div class="control-group">
+                    <label>Mid Dip</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="-12" max="0" value="-3" class="knob" id="sub-mid-gain">
+                        <span class="value-display">-3 dB</span>
                     </div>
-                    <div class="meter-bar">
-                        <div class="meter-fill" id="master-out-r"></div>
+                </div>
+                <div class="control-group">
+                    <label>High Cut</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="10000" max="20000" value="18000" class="knob" id="sub-high-freq">
+                        <span class="value-display">18 kHz</span>
                     </div>
                 </div>
             </div>
-        </header>
+        </section>
 
-        <main class="rack">
-            <!-- 1. Subtractive EQ -->
-            <section class="module" id="subtractive-eq">
-                <div class="module-header">
-                    <h2>EQ SUSTRACTIVA</h2>
-                    <button class="power-btn active" aria-label="Toggle Module"></button>
-                </div>
-                <div class="module-content">
-                    <div class="control-group">
-                        <label>Low Cut</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="20" max="500" value="80" class="knob" id="sub-low-freq">
-                            <span class="value-display">80 Hz</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Mid Dip</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="-12" max="0" value="-3" class="knob" id="sub-mid-gain">
-                            <span class="value-display">-3 dB</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>High Cut</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="10000" max="20000" value="18000" class="knob" id="sub-high-freq">
-                            <span class="value-display">18 kHz</span>
-                        </div>
+        <!-- 2. Additive EQ -->
+        <section class="module" id="additive-eq">
+            <div class="module-header">
+                <h2>EQ ADITIVA</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Low Boost</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="12" value="2" class="knob" id="add-low-gain">
+                        <span class="value-display">+2 dB</span>
                     </div>
                 </div>
-            </section>
+                <div class="control-group">
+                    <label>Presence</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="12" value="1.5" class="knob" id="add-mid-gain">
+                        <span class="value-display">+1.5 dB</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Air</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="12" value="3" class="knob" id="add-high-gain">
+                        <span class="value-display">+3 dB</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            <!-- 2. Additive EQ -->
-            <section class="module" id="additive-eq">
-                <div class="module-header">
-                    <h2>EQ ADITIVA</h2>
-                    <button class="power-btn active" aria-label="Toggle Module"></button>
-                </div>
-                <div class="module-content">
-                    <div class="control-group">
-                        <label>Low Boost</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="0" max="12" value="2" class="knob" id="add-low-gain">
-                            <span class="value-display">+2 dB</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Presence</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="0" max="12" value="1.5" class="knob" id="add-mid-gain">
-                            <span class="value-display">+1.5 dB</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Air</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="0" max="12" value="3" class="knob" id="add-high-gain">
-                            <span class="value-display">+3 dB</span>
-                        </div>
+        <!-- 3. Compression -->
+        <section class="module" id="compression">
+            <div class="module-header">
+                <h2>COMPRESOR</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Threshold</label>
+                    <div class="fader-wrapper">
+                        <input type="range" min="-60" max="0" value="-20" class="fader" id="comp-thresh">
+                        <span class="value-display">-20 dB</span>
                     </div>
                 </div>
-            </section>
+                <div class="control-group">
+                    <label>Ratio</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="1" max="20" step="0.1" value="2" class="knob" id="comp-ratio">
+                        <span class="value-display">2:1</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Makeup</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="24" value="2" class="knob" id="comp-makeup">
+                        <span class="value-display">+2 dB</span>
+                    </div>
+                </div>
+            </div>
+            <div class="gr-meter">
+                <div class="gr-bar" id="gr-visual"></div>
+            </div>
+        </section>
 
-            <!-- 3. Compression -->
-            <section class="module" id="compression">
-                <div class="module-header">
-                    <h2>COMPRESOR</h2>
-                    <button class="power-btn active" aria-label="Toggle Module"></button>
-                </div>
-                <div class="module-content">
-                    <div class="control-group">
-                        <label>Threshold</label>
-                        <div class="fader-wrapper">
-                            <input type="range" min="-60" max="0" value="-20" class="fader" id="comp-thresh">
-                            <span class="value-display">-20 dB</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Ratio</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="1" max="20" step="0.1" value="2" class="knob" id="comp-ratio">
-                            <span class="value-display">2:1</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Makeup</label>
-                        <div class="knob-wrapper">
-                            <input type="range" min="0" max="24" value="2" class="knob" id="comp-makeup">
-                            <span class="value-display">+2 dB</span>
-                        </div>
+        <!-- 4. Saturation -->
+        <section class="module" id="saturation">
+            <div class="module-header">
+                <h2>SATURACIÓN</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Drive</label>
+                    <div class="knob-wrapper large">
+                        <input type="range" min="0" max="100" value="25" class="knob" id="sat-drive">
+                        <span class="value-display">25%</span>
                     </div>
                 </div>
-                <div class="gr-meter">
-                    <div class="gr-bar" id="gr-visual"></div>
+                <div class="control-group">
+                    <label>Type</label>
+                    <div class="switch-wrapper">
+                        <button class="switch-btn active" data-val="tape">TAPE</button>
+                        <button class="switch-btn" data-val="tube">TUBE</button>
+                    </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- 4. Saturation -->
-            <section class="module" id="saturation">
-                <div class="module-header">
-                    <h2>SATURACIÓN</h2>
-                    <button class="power-btn active" aria-label="Toggle Module"></button>
-                </div>
-                <div class="module-content">
-                    <div class="control-group">
-                        <label>Drive</label>
-                        <div class="knob-wrapper large">
-                            <input type="range" min="0" max="100" value="25" class="knob" id="sat-drive">
-                            <span class="value-display">25%</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Type</label>
-                        <div class="switch-wrapper">
-                            <button class="switch-btn active" data-val="tape">TAPE</button>
-                            <button class="switch-btn" data-val="tube">TUBE</button>
-                        </div>
+        <!-- 5. Limiter -->
+        <section class="module" id="limiter">
+            <div class="module-header">
+                <h2>LIMITADOR</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Ceiling</label>
+                    <div class="fader-wrapper">
+                        <input type="range" min="-10" max="0" step="0.1" value="-0.1" class="fader" id="lim-ceiling">
+                        <span class="value-display">-0.1 dB</span>
                     </div>
                 </div>
-            </section>
+                <div class="control-group">
+                    <label>Gain</label>
+                    <div class="knob-wrapper large">
+                        <input type="range" min="0" max="12" value="0" class="knob" id="lim-gain">
+                        <span class="value-display">+0 dB</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-            <!-- 5. Limiter -->
-            <section class="module" id="limiter">
-                <div class="module-header">
-                    <h2>LIMITADOR</h2>
-                    <button class="power-btn active" aria-label="Toggle Module"></button>
-                </div>
-                <div class="module-content">
-                    <div class="control-group">
-                        <label>Ceiling</label>
-                        <div class="fader-wrapper">
-                            <input type="range" min="-10" max="0" step="0.1" value="-0.1" class="fader"
-                                id="lim-ceiling">
-                            <span class="value-display">-0.1 dB</span>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Gain</label>
-                        <div class="knob-wrapper large">
-                            <input type="range" min="0" max="12" value="0" class="knob" id="lim-gain">
-                            <span class="value-display">+0 dB</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
+    <footer>
+        <p>Audio Processing Engine: <span class="status-ok">ONLINE</span></p>
+        <p>Sample Rate: 48kHz | Bit Depth: 24bit</p>
+    </footer>
+    </div>
 
-        <footer>
-            <p>Audio Processing Engine: <span class="status-ok">ONLINE</span></p>
-            <p>Sample Rate: 48kHz | Bit Depth: 24bit</p>
-        </footer>
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Desbloquea Calidad de Master Completa</h2>
+            <p class="price-tag">Precio: <strong>$9 USD</strong></p>
+            <p>Para obtener tu pista completamente masterizada con procesamiento de alta calidad:</p>
+
+            <div class="payment-options">
+                <div class="option">
+                    <h3>🇦🇷 Argentina (Mercado Pago)</h3>
+                    <p>Transferir al Alias:</p>
+                    <code class="alias-code">esteban.145.royo.mp</code>
+                </div>
+                <div class="option">
+                    <h3>🌍 Internacional (PayPal)</h3>
+                    <p>Pagar vía PayPal:</p>
+                    <a href="https://paypal.me/Estebanfederico" target="_blank" class="pay-link">💳 Pay with PayPal</a>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>Próximos pasos:</h3>
+                <ol>
+                    <li>Realiza el pago.</li>
+                    <li>Haz clic en <strong>GUARDAR PRESET</strong> para descargar tu archivo de ajustes (.json).</li>
+                    <li>Envía el <strong>Archivo de preset</strong> y el <strong>Comprobante de pago</strong> a:</li>
+                </ol>
+                <div class="contact-info">
+                    <p>📱 WhatsApp: <a href="https://wa.me/5492664024390" target="_blank">+54 9 266 402 4390</a></p>
+                    <p>📧 Email: <a href="mailto:masteringsteve@gmail.com">masteringsteve@gmail.com</a></p>
+                </div>
+                <p class="note">I will process your full track and send it back via WeTransfer!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Audio Section -->
+    <section class="send-audio-section">
+        <div class="send-audio-content">
+            <h2>📤 Envía tu Audio para Masterización</h2>
+            <div class="audio-requirements">
+                <div class="requirement-item">
+                    <span class="icon">🎵</span>
+                    <div>
+                        <h3>Formato Requerido</h3>
+                        <p>Tu audio debe estar en formato <strong>WAV o MP3</strong></p>
+                        <p class="specs">Recomendado: WAV 24-bit, 44.1kHz o superior</p>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="icon">☁️</span>
+                    <div>
+                        <h3>Cómo Enviar</h3>
+                        <p>Usa <strong>WeTransfer</strong> para enviar tu archivo</p>
+                        <a href="https://wetransfer.com/" target="_blank" class="wetransfer-btn">
+                            Ir a WeTransfer →
+                        </a>
+                    </div>
+                </div>
+                <div class="requirement-item">
+                    <span class="icon">📧</span>
+                    <div>
+                        <h3>Destino</h3>
+                        <p>Envía el enlace de WeTransfer a:</p>
+                        <code class="email-code">masteringsteve@gmail.com</code>
+                        <p class="alt-contact">o vía WhatsApp: <a href="https://wa.me/5492664024390" target="_blank">+54
+                                9 266 402 4390</a></p>
+                    </div>
+                </div>
+            </div>
+            <div class="workflow-steps">
+                <h3>Proceso Completo:</h3>
+                <ol>
+                    <li>Exporta tu audio en formato <strong>WAV o MP3</strong></li>
+                    <li>Sube el archivo a <strong>WeTransfer.com</strong></li>
+                    <li>Envía el enlace de descarga a <strong>masteringsteve@gmail.com</strong></li>
+                    <li>Incluye el <strong>preset guardado</strong> (.json) si ya ajustaste los parámetros</li>
+                    <li>Realiza el pago y envía el comprobante</li>
+                    <li>¡Recibirás tu master profesional en 24-48 horas!</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+    </section>
+    <!-- Contador de visitas -->
+    <div class="contador-visitas">
+        <div id="sfct5lu9cgdjzzftfj94bnghdxyg2elada7"></div>
+        <script type="text/javascript"
+            src="https://counter1.optistats.ovh/private/counter.js?c=t5lu9cgdjzzftfj94bnghdxyg2elada7&down=async"
+            async></script>
+        <noscript><a href="https://www.contadorvisitasgratis.com" title="contador de visitas para web"><img <div
+                    class="knob-wrapper">
+                <input type="range" min="0" max="12" value="1.5" class="knob" id="add-mid-gain">
+                <span class="value-display">+1.5 dB</span>
+    </div>
+    </div>
+    <div class="control-group">
+        <label>Air</label>
+        <div class="knob-wrapper">
+            <input type="range" min="0" max="12" value="3" class="knob" id="add-high-gain">
+            <span class="value-display">+3 dB</span>
+        </div>
+    </div>
+    </div>
+    </section>
+
+    <!-- 3. Compression -->
+    <section class="module" id="compression">
+        <div class="module-header">
+            <h2>COMPRESOR</h2>
+            <button class="power-btn active" aria-label="Toggle Module"></button>
+        </div>
+        <div class="module-content">
+            <div class="control-group">
+                <label>Threshold</label>
+                <div class="fader-wrapper">
+                    <input type="range" min="-60" max="0" value="-20" class="fader" id="comp-thresh">
+                    <span class="value-display">-20 dB</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Ratio</label>
+                <div class="knob-wrapper">
+                    <input type="range" min="1" max="20" step="0.1" value="2" class="knob" id="comp-ratio">
+                    <span class="value-display">2:1</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Makeup</label>
+                <div class="knob-wrapper">
+                    <input type="range" min="0" max="24" value="2" class="knob" id="comp-makeup">
+                    <span class="value-display">+2 dB</span>
+                </div>
+            </div>
+        </div>
+        <div class="gr-meter">
+            <div class="gr-bar" id="gr-visual"></div>
+        </div>
+    </section>
+
+    <!-- 4. Saturation -->
+    <section class="module" id="saturation">
+        <div class="module-header">
+            <h2>SATURACIÓN</h2>
+            <button class="power-btn active" aria-label="Toggle Module"></button>
+        </div>
+        <div class="module-content">
+            <div class="control-group">
+                <label>Drive</label>
+                <div class="knob-wrapper large">
+                    <input type="range" min="0" max="100" value="25" class="knob" id="sat-drive">
+                    <span class="value-display">25%</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Type</label>
+                <div class="switch-wrapper">
+                    <button class="switch-btn active" data-val="tape">TAPE</button>
+                    <button class="switch-btn" data-val="tube">TUBE</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Limiter -->
+    <section class="module" id="limiter">
+        <div class="module-header">
+            <h2>LIMITADOR</h2>
+            <button class="power-btn active" aria-label="Toggle Module"></button>
+        </div>
+        <div class="module-content">
+            <div class="control-group">
+                <label>Ceiling</label>
+                <div class="fader-wrapper">
+                    <input type="range" min="-10" max="0" step="0.1" value="-0.1" class="fader" id="lim-ceiling">
+                    <span class="value-display">-0.1 dB</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Gain</label>
+                <div class="knob-wrapper large">
+                    <input type="range" min="0" max="12" value="0" class="knob" id="lim-gain">
+                    <span class="value-display">+0 dB</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+
+    <footer>
+        <p>Audio Processing Engine: <span class="status-ok">ONLINE</span></p>
+        <p>Sample Rate: 48kHz | Bit Depth: 24bit</p>
+    </footer>
     </div>
 
     <div id="payment-modal" class="modal">
@@ -303,7 +503,24 @@
     </div>
     </section>
 
+    <!-- Chatbot de presets (simulado) -->
+    <div class="wizard-widget" id="wizard-widget">
+        <div class="wizard-header">
+            🤖 Asistente de Presets
+            <div class="wizard-controls">
+                <button class="minimize-btn" id="wizard-toggle" title="Minimizar">_</button>
+                <button class="minimize-btn" id="wizard-reset" title="Reiniciar asistente">⟲</button>
+            </div>
+        </div>
+        <div class="wizard-body" id="wizard-body">
+            <div class="message bot">¡Hola! Vamos a encontrar el preset perfecto para tu canción. ¿Qué género describe
+                mejor
+                tu pista?</div>
+        </div>
+        <div class="wizard-options" id="wizard-options"></div>
+    </div>
 
+    <script src="wizard.js" defer></script>
     <script src="script.js"></script>
 </body>
 
