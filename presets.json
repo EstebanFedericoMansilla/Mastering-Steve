@@ -1,0 +1,46 @@
+[
+    {
+        "id": "rock‑tight",
+        "name": "Rock – Tight",
+        "genre": "Rock",
+        "description": "Punchy low‑end, bright highs, +2 dB loudness.",
+        "tags": [
+            "rock",
+            "energetic",
+            "drums"
+        ]
+    },
+    {
+        "id": "pop‑airy",
+        "name": "Pop – Airy",
+        "genre": "Pop",
+        "description": "Wide stereo, gentle tape saturation, +1.5 dB loudness.",
+        "tags": [
+            "pop",
+            "vocal",
+            "bright"
+        ]
+    },
+    {
+        "id": "hiphop‑bass",
+        "name": "Hip‑Hop – Bass‑Heavy",
+        "genre": "Hip‑Hop",
+        "description": "Deep sub‑bass, tight mids, +3 dB loudness.",
+        "tags": [
+            "hiphop",
+            "bass",
+            "urban"
+        ]
+    },
+    {
+        "id": "classical‑warm",
+        "name": "Clásica – Warm",
+        "genre": "Clásica",
+        "description": "Natural dynamics, subtle warmth, no limit clipping.",
+        "tags": [
+            "classical",
+            "orchestral",
+            "dynamic"
+        ]
+    }
+]
