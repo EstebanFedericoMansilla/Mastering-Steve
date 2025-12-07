@@ -29,6 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const meterR = document.getElementById('master-out-r');
     const grVisual = document.getElementById('gr-visual');
 
+    // Funciones expuestas para que el wizard pueda comprobar/abrir selector de audio
+    window.isAudioLoaded = function () {
+        return !!audioBuffer;
+    };
+
+    window.openFilePicker = function () {
+        // abre el input file para cargar audio
+        try { fileInput.click(); } catch (err) { console.error('openFilePicker error', err); }
+    };
+
     // --- Payment Modal Logic ---
     btnBuy.addEventListener('click', () => {
         paymentModal.style.display = 'block';
@@ -47,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Save Preset ---
     btnSavePreset.addEventListener('click', () => {
         const preset = {
+            target_platform: document.getElementById('target-select').value,
             subtractive_eq: {
                 low_cut: document.getElementById('sub-low-freq').value,
                 mid_dip: document.getElementById('sub-mid-gain').value,
@@ -129,6 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Hacer accesible el objeto de presets al wizard y otras utilidades externas
+    window.genrePresets = genrePresets;
+
     genreSelect.addEventListener('change', (e) => {
         const genre = e.target.value;
         if (genre === 'default' || !genrePresets[genre]) return;
@@ -167,8 +181,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update Audio Engine
         if (audioCtx) updateAudioParams();
 
-        // Reset select to prompt
         // genreSelect.value = 'default'; 
+    });
+
+    // --- Target Platform Logic ---
+    const targetSelect = document.getElementById('target-select');
+    targetSelect.addEventListener('change', (e) => {
+        const target = e.target.value;
+        const limCeiling = document.getElementById('lim-ceiling');
+        const compThresh = document.getElementById('comp-thresh');
+
+        if (target === 'spotify' || target === 'youtube') {
+            // Streaming Standards: Safer ceiling, moderate dynamics
+            limCeiling.value = -1.0;
+            if (parseFloat(compThresh.value) < -15) compThresh.value = -15; // Un-squash a bit
+        } else if (target === 'apple') {
+            // Apple Digital Master
+            limCeiling.value = -1.0;
+        } else if (target === 'cd') {
+            // Loud and proud
+            limCeiling.value = -0.1;
+            compThresh.value = Math.min(parseFloat(compThresh.value), -18); // Push harder
+        }
+
+        updateValueDisplay(limCeiling);
+        updateValueDisplay(compThresh);
+        if (audioCtx) updateAudioParams();
     });
 
     // --- 1. Initialization ---
@@ -177,6 +215,16 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Si hay una fuente previa reproduciéndose, la detenemos y reiniciamos estado
+        if (sourceNode) {
+            try { sourceNode.stop(); } catch (err) { /* ignore */ }
+            try { sourceNode.disconnect(); } catch (err) { /* ignore */ }
+            sourceNode = null;
+        }
+        isPlaying = false;
+        pauseTime = 0;
+        btnPlay.textContent = 'PLAY';
 
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -198,6 +246,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSavePreset.disabled = false;
             btnPlay.textContent = 'PLAY';
             pauseTime = 0;
+
+            // Reiniciar el wizard si existe para que re-analice el audio nuevo
+            if (window.resetWizard) {
+                window.resetWizard();
+            }
         } catch (err) {
             console.error(err);
             alert('Error loading audio file.');
@@ -295,6 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
         masterGain.gain.value = Math.pow(10, totalGainDb / 20);
     }
 
+    // Exponer función para que otros módulos (ej. wizard.js) puedan forzar actualización
+    window.updateAudioParams = updateAudioParams;
+
     function makeDistortionCurve(amount) {
         const k = typeof amount === 'number' ? amount : 0;
         const n_samples = 44100;
@@ -348,8 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnExport.textContent = 'RENDERING...';
         btnExport.disabled = true;
 
-        // Calculate 50% length
-        const demoLength = Math.floor(audioBuffer.length / 2);
+        // Calculate length: Full track up to 60 seconds max
+        const demoLength = Math.min(audioBuffer.length, audioBuffer.sampleRate * 60);
 
         const offlineCtx = new OfflineAudioContext(
             2,
@@ -424,17 +480,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'mastered_demo_50percent.wav';
+        a.download = 'mastered_demo_60 Segundos';
         a.click();
 
-        btnExport.textContent = 'EXPORT DEMO (50%)';
+        btnExport.textContent = 'EXPORT DEMO (60 Segundos)';
         btnExport.disabled = false;
     });
 
     // --- Helper: AudioBuffer to WAV ---
     function bufferToWave(abuffer, len) {
+        // Limit length to 60 seconds max
+        const maxLen = Math.min(len, abuffer.sampleRate * 60);
         let numOfChan = abuffer.numberOfChannels,
-            length = len * numOfChan * 2 + 44,
+            length = maxLen * numOfChan * 2 + 44,
             buffer = new ArrayBuffer(length),
             view = new DataView(buffer),
             channels = [], i, sample,
@@ -508,6 +566,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         display.textContent = value;
     }
+
+    // Exponer updateValueDisplay para uso externo (wizard)
+    window.updateValueDisplay = updateValueDisplay;
+
+    // Aplicar preset por género reutilizando los presets ya definidos
+    window.applyPresetByGenre = function (genre) {
+        if (!genre) return;
+        const key = genre.toLowerCase();
+        const p = window.genrePresets && window.genrePresets[key];
+        if (!p) return;
+
+        document.getElementById('sub-low-freq').value = p.subtractive_eq.low_cut;
+        document.getElementById('sub-mid-gain').value = p.subtractive_eq.mid_dip;
+        document.getElementById('sub-high-freq').value = p.subtractive_eq.high_cut;
+
+        document.getElementById('add-low-gain').value = p.additive_eq.low_boost;
+        document.getElementById('add-mid-gain').value = p.additive_eq.presence;
+        document.getElementById('add-high-gain').value = p.additive_eq.air;
+
+        document.getElementById('comp-thresh').value = p.compression.threshold;
+        document.getElementById('comp-ratio').value = p.compression.ratio;
+        document.getElementById('comp-makeup').value = p.compression.makeup;
+
+        document.getElementById('sat-drive').value = p.saturation.drive;
+        // Update Saturation Type UI
+        const satType = p.saturation.type;
+        document.querySelectorAll('.switch-btn').forEach(btn => {
+            if (btn.dataset.val === satType) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        document.getElementById('lim-ceiling').value = p.limiter.ceiling;
+        document.getElementById('lim-gain').value = p.limiter.gain;
+
+        // Actualizar displays
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            window.updateValueDisplay(input);
+        });
+
+        // Aplicar al motor de audio si ya existe
+        if (audioCtx) window.updateAudioParams();
+    };
 
     // Bypass Buttons
     const powerBtns = document.querySelectorAll('.power-btn');
