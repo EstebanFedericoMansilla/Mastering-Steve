@@ -24,9 +24,12 @@
             <button id="btn-play" class="btn-control" disabled>PLAY</button>
             <button id="btn-export" class="btn-control" disabled>EXPORT DEMO (60 SEGUNDOS)</button>
             <button id="btn-save-preset" class="btn-control" disabled>SAVE PRESET</button>
+            <button id="btn-load-preset" class="btn-control">LOAD PRESET</button>
+            <input type="file" id="preset-upload-input" accept=".json" style="display: none;">
             <div class="preset-dropdown-container">
                 <select id="genre-select" class="btn-control preset-select">
                     <option value="default">Load Genre Preset...</option>
+                    <option value="upload">📂 Cargar mi propio Preset (.json)</option>
                     <option value="rock">🎸 Rock</option>
                     <option value="pop">✨ Pop</option>
                     <option value="country">🤠 Country</option>
@@ -42,7 +45,7 @@
                     <option value="cd">💿 CD / Club (-9 LUFS)</option>
                 </select>
             </div>
-            <button id="btn-buy" class="btn-premium">GET FULL MASTER — $9</button>
+            <button id="btn-buy" class="btn-premium">DESBLOQUEAR PRO (OFERTA $3.000)</button>
         </div>
         <div class="separator"></div>
         <button id="bypass-all" class="btn-toggle">BYPASS ALL</button>
@@ -215,83 +218,107 @@
     <div id="payment-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>Desbloquea Calidad de Master Completa</h2>
-            <p class="price-tag">Precio: <strong>$9 USD</strong></p>
-            <p>Para obtener tu pista completamente masterizada con procesamiento de alta calidad:</p>
+            <h2>🔓 Acceso PRO Ilimitado</h2>
+            <p class="price-tag">OFERTA DE LANZAMIENTO: <strong>$3 USD / $3.000 ARS</strong></p>
+            <p>¡Precio promocional por tiempo limitado! Masteriza todo lo que quieras por un mes.</p>
 
             <div class="payment-options">
                 <div class="option">
                     <h3>🇦🇷 Argentina (Mercado Pago)</h3>
-                    <p>Transferir al Alias:</p>
-                    <code class="alias-code">esteban.145.royo.mp</code>
+
+                    <div style="margin-bottom: 20px;">
+                        <p style="margin-bottom:5px; color: #4ade80; font-size: 1.1em;"><strong>🔥 MEMBRESÍA PRO (Todo
+                                incluido)</strong></p>
+                        <a href="https://mpago.la/1caEEat" target="_blank" class="pay-link"
+                            style="background-color: #009ee3; border-color: #009ee3;">💸 Activar por $3.000 ARS</a>
+                        <button
+                            onclick="navigator.clipboard.writeText('https://mpago.la/1caEEat').then(() => alert('Link de $3.000 copiado. ¡Pégalo en tu PC al terminar!'));"
+                            style="background: none; border: none; color: #009ee3; text-decoration: underline; cursor: pointer; font-size: 0.8rem; margin-top: 5px; padding: 0; text-align: left; line-height: 1.4;">
+                            📋 Copiar link pa' Celular
+                        </button>
+                    </div>
                 </div>
                 <div class="option">
                     <h3>🌍 Internacional (PayPal)</h3>
                     <p>Pagar vía PayPal:</p>
-                    <a href="https://paypal.me/Estebanfederico" target="_blank" class="pay-link">💳 Pay with PayPal</a>
+                    <a href="https://paypal.me/Estebanfederico" target="_blank" class="pay-link">💳 Pay with PayPal ($3
+                        USD)</a>
                 </div>
             </div>
 
+            <!-- Manual Unlock Section -->
+            <div
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: center;">
+                <p style="font-size: 0.9em; opacity: 0.7;">¿Ya pagaste o tienes un código?</p>
+                <button onclick="enterProCode()"
+                    style="background: transparent; border: 1px solid #4ade80; color: #4ade80; padding: 5px 15px; border-radius: 4px; cursor: pointer; margin-top: 5px;">
+                    🔑 Ingresar Código Manual
+                </button>
+            </div>
+
             <div class="instructions">
-                <h3>Próximos pasos:</h3>
-                <ol>
-                    <li>Realiza el pago.</li>
-                    <li>Haz clic en <strong>GUARDAR PRESET</strong> para descargar tu archivo de ajustes (.json).</li>
-                    <li>Envía el <strong>Archivo de preset</strong> y el <strong>Comprobante de pago</strong> a:</li>
-                </ol>
+                <h3>Cómo funciona (Desbloqueo Automático):</h3>
+                <div
+                    style="text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 8px;"><strong>🇦🇷 Argentina (Mercado Pago):</strong><br>
+                        Al finalizar el pago, espera unos segundos y serás redirigido <strong>automáticamente</strong>
+                        al MODO PRO.</p>
+
+                    <p style="margin-bottom: 0;"><strong>🌍 Internacional (PayPal):</strong><br>
+                        1. Envía $3 USD a través del botón.<br>
+                        2. Manda copia del comprobante por WhatsApp/Email.<br>
+                        3. Recibirás tú <strong>Código de Acceso</strong> al instante.</p>
+                </div>
+
+                <p style="font-size: 0.9em; opacity: 0.8;"><strong>💡 Tecnología Smart-Link:</strong> Una vez activo, tu
+                    acceso queda guardado en este dispositivo. ¡No necesitas contraseñas para volver a entrar! </p>
                 <div class="contact-info">
+                    <p class="note" style="font-size: 0.9em; opacity: 0.8;">¿Algún problema? Envíame el comprobante y te
+                        activo manual:</p>
                     <p>📱 WhatsApp: <a href="https://wa.me/5492664024390" target="_blank">+54 9 266 402 4390</a></p>
                     <p>📧 Email: <a href="mailto:masteringsteve@gmail.com">masteringsteve@gmail.com</a></p>
                 </div>
-                <p class="note">I will process your full track and send it back via WeTransfer!</p>
             </div>
         </div>
     </div>
 
     <!-- Send Audio Section -->
+    <!-- Intelligent Workflow Section -->
     <section class="send-audio-section">
         <div class="send-audio-content">
-            <h2>📤 Envía tu Audio para Masterización</h2>
+            <h2>🤖 Flujo de Trabajo Inteligente</h2>
             <div class="audio-requirements">
                 <div class="requirement-item">
-                    <span class="icon">🎵</span>
+                    <span class="icon">�️</span>
                     <div>
-                        <h3>Formato Requerido</h3>
-                        <p>Tu audio debe estar en formato <strong>WAV o MP3</strong></p>
-                        <p class="specs">Recomendado: WAV 24-bit, 44.1kHz o superior</p>
+                        <h3>1. Carga y Ajusta</h3>
+                        <p>Sube tu mezcla y usa las perillas o presets. ¿Dudas? <strong>Pregúntale al Chatbot</strong>.
+                        </p>
                     </div>
                 </div>
                 <div class="requirement-item">
-                    <span class="icon">☁️</span>
+                    <span class="icon">🔓</span>
                     <div>
-                        <h3>Cómo Enviar</h3>
-                        <p>Usa <strong>WeTransfer</strong> para enviar tu archivo</p>
-                        <a href="https://wetransfer.com/" target="_blank" class="wetransfer-btn">
-                            Ir a WeTransfer →
-                        </a>
+                        <h3>2. Desbloquea PRO</h3>
+                        <p>Realiza un pago único de <strong>$3 USD</strong> para activar exportaciones WAV ilimitadas.
+                        </p>
                     </div>
                 </div>
                 <div class="requirement-item">
-                    <span class="icon">📧</span>
+                    <span class="icon">⚡</span>
                     <div>
-                        <h3>Destino</h3>
-                        <p>Envía el enlace de WeTransfer a:</p>
-                        <code class="email-code">masteringsteve@gmail.com</code>
-                        <p class="alt-contact">o vía WhatsApp: <a href="https://wa.me/5492664024390" target="_blank">+54
-                                9 266 402 4390</a></p>
+                        <h3>3. Exporta al Instante</h3>
+                        <p>Sin esperas de 48hs. Obtén tu master profesional en <strong>segundos</strong>.</p>
                     </div>
                 </div>
             </div>
-            <div class="workflow-steps">
-                <h3>Proceso Completo:</h3>
-                <ol>
-                    <li>Exporta tu audio en formato <strong>WAV o MP3</strong></li>
-                    <li>Sube el archivo a <strong>WeTransfer.com</strong></li>
-                    <li>Envía el enlace de descarga a <strong>masteringsteve@gmail.com</strong></li>
-                    <li>Incluye el <strong>preset guardado</strong> (.json) si ya ajustaste los parámetros</li>
-                    <li>Realiza el pago y envía el comprobante</li>
-                    <li>¡Recibirás tu master profesional en 24-48 horas!</li>
-                </ol>
+
+            <div class="workflow-steps"
+                style="margin-top: 2rem; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px;">
+                <h3>💡 Tip Pro:</h3>
+                <p style="margin-bottom: 0;">Si necesitas cerrar el navegador, ¡no te preocupes! <strong>Tus ajustes se
+                        guardan automáticamente</strong>. Solo vuelve a entrar, carga tu canción de nuevo y todo estará
+                    como lo dejaste.</p>
             </div>
         </div>
     </section>
@@ -411,7 +438,7 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h2>Desbloquea Calidad de Master Completa</h2>
-            <p class="price-tag">Precio: <strong>$9 USD</strong></p>
+            <p class="price-tag">Precio: <strong>$3 USD</strong></p>
             <p>Para obtener tu pista completamente masterizada con procesamiento de alta calidad:</p>
 
             <div class="payment-options">
@@ -443,52 +470,7 @@
         </div>
     </div>
 
-    <!-- Send Audio Section -->
-    <section class="send-audio-section">
-        <div class="send-audio-content">
-            <h2>📤 Envía tu Audio para Masterización</h2>
-            <div class="audio-requirements">
-                <div class="requirement-item">
-                    <span class="icon">🎵</span>
-                    <div>
-                        <h3>Formato Requerido</h3>
-                        <p>Tu audio debe estar en formato <strong>WAV o MP3</strong></p>
-                        <p class="specs">Recomendado: WAV 24-bit, 44.1kHz o superior</p>
-                    </div>
-                </div>
-                <div class="requirement-item">
-                    <span class="icon">☁️</span>
-                    <div>
-                        <h3>Cómo Enviar</h3>
-                        <p>Usa <strong>WeTransfer</strong> para enviar tu archivo</p>
-                        <a href="https://wetransfer.com/" target="_blank" class="wetransfer-btn">
-                            Ir a WeTransfer →
-                        </a>
-                    </div>
-                </div>
-                <div class="requirement-item">
-                    <span class="icon">📧</span>
-                    <div>
-                        <h3>Destino</h3>
-                        <p>Envía el enlace de WeTransfer a:</p>
-                        <code class="email-code">masteringsteve@gmail.com</code>
-                        <p class="alt-contact">o vía WhatsApp: <a href="https://wa.me/5492664024390" target="_blank">+54
-                                9 266 402 4390</a></p>
-                    </div>
-                </div>
-            </div>
-            <div class="workflow-steps">
-                <h3>Proceso Completo:</h3>
-                <ol>
-                    <li>Exporta tu audio en formato <strong>WAV o MP3</strong></li>
-                    <li>Sube el archivo a <strong>WeTransfer.com</strong></li>
-                    <li>Envía el enlace de descarga a <strong>masteringsteve@gmail.com</strong></li>
-                    <li>Incluye el <strong>preset guardado</strong> (.json) si ya ajustaste los parámetros</li>
-                    <li>Realiza el pago y envía el comprobante</li>
-                    <li>¡Recibirás tu master profesional en 24-48 horas!</li>
-                </ol>
-            </div>
-        </div>
+    <!-- Send Audio Section REMOVED (Automatic Process) -->
     </section>
     </section>
     <!-- Contador de visitas -->

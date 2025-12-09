@@ -1,4 +1,60 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- 0. PRO MODE / URL CLEANER (Logic to unlock & hide key) ---
+    // --- 0. PRO MODE / URL CLEANER (Logic to unlock & hide key) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const SECRET_KEY = 'unlock_pro_secure_v1'; // Tu "Contraseña" maestra
+
+    // Check URL param OR LocalStorage
+    const hasUrlAccess = urlParams.get('access') === SECRET_KEY;
+    const hasStoredAccess = localStorage.getItem('steve_pro_membership') === SECRET_KEY;
+
+    if (hasUrlAccess || hasStoredAccess) {
+        // 1. Activate PRO Mode
+        document.body.classList.add('full-access');
+
+        // 1.5 Save to Memory (Persistence)
+        if (hasUrlAccess) {
+            localStorage.setItem('steve_pro_membership', SECRET_KEY);
+            // Security: Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            // Notify first time
+            setTimeout(() => alert('¡Pago confirmado! Modo PRO desbloqueado y guardado en este navegador.'), 500);
+        }
+
+        // 2. UI Updates for PRO mode
+        const logoTitle = document.querySelector('.logo h1');
+        if (logoTitle) logoTitle.innerHTML = 'MASTERING<span class="highlight">STEVE</span> <span style="font-size: 0.5em; color: #4ade80; vertical-align: super;">PRO</span>';
+
+        const btnBuy = document.getElementById('btn-buy');
+        if (btnBuy) btnBuy.style.display = 'none';
+
+        const btnExport = document.getElementById('btn-export');
+        if (btnExport) btnExport.textContent = 'EXPORT FULL MASTER (WAV)';
+    }
+
+    // --- Manual Code Entry (For "Already have a code") ---
+    // --- Manual Code Entry (Smart Parser) ---
+    window.enterProCode = function () {
+        let input = prompt("Pega aquí el Link final que te dio Mercado Pago (o tu código):");
+        if (!input) return;
+
+        // Smart cleanup: Si pegan el link entero, extraemos solo el código
+        if (input.includes('access=')) {
+            const match = input.match(/access=([^&]*)/);
+            if (match && match[1]) {
+                input = match[1];
+            }
+        }
+
+        if (input.trim() === SECRET_KEY) {
+            localStorage.setItem('steve_pro_membership', SECRET_KEY);
+            alert("✅ Dispositivo Validado. ¡Acceso PRO activado!");
+            location.reload();
+        } else {
+            alert("❌ Código no válido. Asegúrate de copiar el link final después del pago.");
+        }
+    };
+
     // --- Audio Context & Nodes ---
     let audioCtx;
     let sourceNode;
@@ -94,8 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Genre Presets Logic ---
     const genreSelect = document.getElementById('genre-select');
-
+    // Genre Presets Object Definitions...
     const genrePresets = {
+        // ... (keeping existing presets)
         rock: {
             subtractive_eq: { low_cut: 40, mid_dip: -2, high_cut: 19000 },
             additive_eq: { low_boost: 3, presence: 2, air: 2 },
@@ -143,8 +200,87 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hacer accesible el objeto de presets al wizard y otras utilidades externas
     window.genrePresets = genrePresets;
 
+    const presetUploadInput = document.getElementById('preset-upload-input');
+    const btnLoadPreset = document.getElementById('btn-load-preset');
+
+    // Handle File Upload for Custom Preset
+    presetUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const p = JSON.parse(event.target.result);
+
+                // 1. Safe mapping: Check properties before assigning
+                if (p.target_platform) {
+                    document.getElementById('target-select').value = p.target_platform;
+                }
+                if (p.subtractive_eq) {
+                    document.getElementById('sub-low-freq').value = p.subtractive_eq.low_cut;
+                    document.getElementById('sub-mid-gain').value = p.subtractive_eq.mid_dip;
+                    document.getElementById('sub-high-freq').value = p.subtractive_eq.high_cut;
+                }
+                if (p.additive_eq) {
+                    document.getElementById('add-low-gain').value = p.additive_eq.low_boost;
+                    document.getElementById('add-mid-gain').value = p.additive_eq.presence;
+                    document.getElementById('add-high-gain').value = p.additive_eq.air;
+                }
+                if (p.compression) {
+                    document.getElementById('comp-thresh').value = p.compression.threshold;
+                    document.getElementById('comp-ratio').value = p.compression.ratio;
+                    document.getElementById('comp-makeup').value = p.compression.makeup;
+                }
+                if (p.saturation) {
+                    document.getElementById('sat-drive').value = p.saturation.drive;
+                    const satType = p.saturation.type;
+                    document.querySelectorAll('.switch-btn').forEach(btn => {
+                        if (btn.dataset.val === satType) btn.classList.add('active');
+                        else btn.classList.remove('active');
+                    });
+                }
+                if (p.limiter) {
+                    document.getElementById('lim-ceiling').value = p.limiter.ceiling;
+                    document.getElementById('lim-gain').value = p.limiter.gain;
+                }
+
+                // 2. Update all visual numbers
+                document.querySelectorAll('input[type="range"]').forEach(input => {
+                    updateValueDisplay(input);
+                });
+
+                // 3. Update Audio Engine
+                if (audioCtx) updateAudioParams();
+
+                // 4. Save to Auto-Save
+                saveSettings();
+
+                alert('¡Preset cargado con éxito!');
+            } catch (err) {
+                console.error(err);
+                alert('Error al leer el archivo de preset. Asegúrate de que sea un .json válido.');
+            } finally {
+                // Reset input to allow reloading same file
+                e.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    // Connect Button to Input
+    btnLoadPreset.addEventListener('click', () => presetUploadInput.click());
+
     genreSelect.addEventListener('change', (e) => {
         const genre = e.target.value;
+
+        // Custom Preset Upload Logic
+        if (genre === 'upload') {
+            presetUploadInput.click();
+            e.target.value = 'default'; // Reset select
+            return;
+        }
+
         if (genre === 'default' || !genrePresets[genre]) return;
 
         const p = genrePresets[genre];
@@ -185,32 +321,121 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Target Platform Logic ---
+    // --- Target Platform Logic (Smart Gain Staging) ---
     const targetSelect = document.getElementById('target-select');
     targetSelect.addEventListener('change', (e) => {
         const target = e.target.value;
         const limCeiling = document.getElementById('lim-ceiling');
+        const limGain = document.getElementById('lim-gain');
         const compThresh = document.getElementById('comp-thresh');
 
-        if (target === 'spotify' || target === 'youtube') {
-            // Streaming Standards: Safer ceiling, moderate dynamics
-            limCeiling.value = -1.0;
-            if (parseFloat(compThresh.value) < -15) compThresh.value = -15; // Un-squash a bit
-        } else if (target === 'apple') {
-            // Apple Digital Master
-            limCeiling.value = -1.0;
-        } else if (target === 'cd') {
-            // Loud and proud
+        // Valores estimados basados en una mezcla promedio (-18 LUFS entrada)
+        if (target === 'default') {
+            // "Volver a la normalidad" -> Reset a valores seguros por defecto
             limCeiling.value = -0.1;
-            compThresh.value = Math.min(parseFloat(compThresh.value), -18); // Push harder
+            limGain.value = 0;
+            // No tocamos compThresh aquí para respetar si el usuario ya comprimió a su gusto
+
+        } else if (target === 'spotify' || target === 'youtube') {
+            // Target: -14 LUFS (Estándar Streaming)
+            // Ceiling: -1.0 dB (True Peak Safe)
+            // Gain: Moderada para preservar dinámica
+            limCeiling.value = -1.0;
+            limGain.value = 4.0; // +4dB boost aprox
+
+        } else if (target === 'apple') {
+            // Target: -16 LUFS (Más dinámico)
+            limCeiling.value = -1.0;
+            limGain.value = 2.5; // +2.5dB boost suave
+
+        } else if (target === 'cd') {
+            // Target: -9 LUFS (Club / Muy fuerte)
+            // Ceiling: -0.1 dB (Max volume)
+            // Gain: Agresiva
+            limCeiling.value = -0.1;
+            limGain.value = 9.0; // +9dB boost agresivo
+
+            // Empujar el compresor también
+            if (parseFloat(compThresh.value) > -15) compThresh.value = -20;
         }
 
         updateValueDisplay(limCeiling);
+        updateValueDisplay(limGain);
         updateValueDisplay(compThresh);
         if (audioCtx) updateAudioParams();
+
+        // Guardar cambios
+        saveSettings();
     });
 
     // --- 1. Initialization ---
+    // Load Settings from LocalStorage if available
+    loadSettings();
+
     btnLoad.addEventListener('click', () => fileInput.click());
+
+    // ... (rest of fileInput listener)
+
+    // --- Auto-Save & Load Logic ---
+    function saveSettings() {
+        const settings = {
+            targetPlatform: document.getElementById('target-select').value,
+            subLow: document.getElementById('sub-low-freq').value,
+            subMid: document.getElementById('sub-mid-gain').value,
+            subHigh: document.getElementById('sub-high-freq').value,
+            addLow: document.getElementById('add-low-gain').value,
+            addMid: document.getElementById('add-mid-gain').value,
+            addHigh: document.getElementById('add-high-gain').value,
+            compThresh: document.getElementById('comp-thresh').value,
+            compRatio: document.getElementById('comp-ratio').value,
+            compMakeup: document.getElementById('comp-makeup').value,
+            satDrive: document.getElementById('sat-drive').value,
+            satType: document.querySelector('.switch-btn.active').dataset.val,
+            limCeiling: document.getElementById('lim-ceiling').value,
+            limGain: document.getElementById('lim-gain').value
+        };
+        localStorage.setItem('masteringSteveSettings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+        const saved = localStorage.getItem('masteringSteveSettings');
+        if (!saved) return;
+
+        try {
+            const s = JSON.parse(saved);
+            if (s.targetPlatform) document.getElementById('target-select').value = s.targetPlatform;
+
+            if (s.subLow) document.getElementById('sub-low-freq').value = s.subLow;
+            if (s.subMid) document.getElementById('sub-mid-gain').value = s.subMid;
+            if (s.subHigh) document.getElementById('sub-high-freq').value = s.subHigh;
+
+            if (s.addLow) document.getElementById('add-low-gain').value = s.addLow;
+            if (s.addMid) document.getElementById('add-mid-gain').value = s.addMid;
+            if (s.addHigh) document.getElementById('add-high-gain').value = s.addHigh;
+
+            if (s.compThresh) document.getElementById('comp-thresh').value = s.compThresh;
+            if (s.compRatio) document.getElementById('comp-ratio').value = s.compRatio;
+            if (s.compMakeup) document.getElementById('comp-makeup').value = s.compMakeup;
+
+            if (s.satDrive) document.getElementById('sat-drive').value = s.satDrive;
+
+            if (s.satType) {
+                document.querySelectorAll('.switch-btn').forEach(btn => {
+                    if (btn.dataset.val === s.satType) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+            }
+
+            if (s.limCeiling) document.getElementById('lim-ceiling').value = s.limCeiling;
+            if (s.limGain) document.getElementById('lim-gain').value = s.limGain;
+
+            // Update UI Displays
+            document.querySelectorAll('input[type="range"]').forEach(input => {
+                updateValueDisplay(input);
+            });
+
+        } catch (e) { console.error('Error loading settings', e); }
+    }
 
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
@@ -346,6 +571,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const compMakeup = parseFloat(document.getElementById('comp-makeup').value);
         const totalGainDb = limGain + compMakeup;
         masterGain.gain.value = Math.pow(10, totalGainDb / 20);
+
+        // Auto-save on change
+        saveSettings();
     }
 
     // Exponer función para que otros módulos (ej. wizard.js) puedan forzar actualización
@@ -404,8 +632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnExport.textContent = 'RENDERING...';
         btnExport.disabled = true;
 
-        // Calculate length: Full track up to 60 seconds max
-        const demoLength = Math.min(audioBuffer.length, audioBuffer.sampleRate * 60);
+        // Calculate length: Check if full access is enabled
+        const isFullVersion = document.body.classList.contains('full-access');
+        const demoLength = isFullVersion ? audioBuffer.length : Math.min(audioBuffer.length, audioBuffer.sampleRate * 60);
 
         const offlineCtx = new OfflineAudioContext(
             2,
@@ -480,17 +709,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'mastered_demo_60 Segundos';
+        a.download = isFullVersion ? 'mastered_full_track.wav' : 'mastered_demo_60_Segundos.wav';
         a.click();
 
-        btnExport.textContent = 'EXPORT DEMO (60 Segundos)';
+        btnExport.textContent = isFullVersion ? 'EXPORT FULL MASTER (WAV)' : 'EXPORT DEMO (60 Segundos)';
         btnExport.disabled = false;
     });
 
     // --- Helper: AudioBuffer to WAV ---
     function bufferToWave(abuffer, len) {
-        // Limit length to 60 seconds max
-        const maxLen = Math.min(len, abuffer.sampleRate * 60);
+        // Limit length if not full version
+        const isFullVersion = document.body.classList.contains('full-access');
+        const maxLen = isFullVersion ? len : Math.min(len, abuffer.sampleRate * 60);
         let numOfChan = abuffer.numberOfChannels,
             length = maxLen * numOfChan * 2 + 44,
             buffer = new ArrayBuffer(length),
