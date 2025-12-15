@@ -169,6 +169,16 @@ body {
   cursor: pointer;
 }
 
+/* On small screens make minimized pill anchor to the right and sit above
+   the page footer/contador so it doesn't cover the visit counter */
+@media (max-width: 480px) {
+  .wizard-widget.minimized {
+    left: auto;
+    right: 12px;
+    bottom: 80px; /* lift above contador area */
+    width: 220px;
+  }
+}
 .wizard-widget.minimized .wizard-body,
 .wizard-widget.minimized .wizard-options {
   display: none;
@@ -180,8 +190,9 @@ body {
   text-align: left;
 }
 
+/* Keep minimize button text upright — don't rotate text content */
 .wizard-widget.minimized .minimize-btn {
-  transform: rotate(180deg);
+  transform: none;
 }
 
 /* Barra de progreso AI */
