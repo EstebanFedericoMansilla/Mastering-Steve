@@ -175,10 +175,12 @@ body {
   .wizard-widget.minimized {
     left: auto;
     right: 12px;
-    bottom: 80px; /* lift above contador area */
+    bottom: 10px;
+    /* Aligned with visit counter as requested */
     width: 220px;
   }
 }
+
 .wizard-widget.minimized .wizard-body,
 .wizard-widget.minimized .wizard-options {
   display: none;
