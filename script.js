@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 0. PRO MODE / URL CLEANER (Logic to unlock & hide key) ---
     // --- 0. PRO MODE / URL CLEANER (Logic to unlock & hide key) ---
     const urlParams = new URLSearchParams(window.location.search);
-    const SECRET_KEY = 'cliente_vip_enero_2026'; // Tu "Contraseña" maestra
+    const SECRET_KEY = 'cliente_vip_febrero_2026'; // Tu "Contraseña" maestra
 
     // Check URL param OR LocalStorage
     const hasUrlAccess = urlParams.get('access') === SECRET_KEY;
@@ -956,3 +956,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     animateMeters();
 });
+
