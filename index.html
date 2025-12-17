@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="wizard.css">
+    <link rel="stylesheet" href="mixer.css">
 </head>
 
 <body>
@@ -17,7 +18,13 @@
         <div class="led-indicator active"></div>
         <h1>MASTERING<span class="highlight">STEVE</span></h1>
     </div>
-    <div class="master-controls">
+    <div class="mode-switcher">
+        <button id="mode-mastering" class="mode-btn active">Mastering</button>
+        <button id="mode-mixing" class="mode-btn">Mixing</button>
+    </div>
+
+    <!-- Mastering Specific Controls -->
+    <div id="mastering-ui" class="master-controls">
         <div class="transport">
             <input type="file" id="audio-upload" accept="audio/*" style="display: none;">
             <button id="btn-load" class="btn-control">LOAD TRACK</button>
@@ -59,6 +66,28 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Mixing Specific Controls (Mixer Console) -->
+    <div id="mixing-ui" class="mixer-container">
+        <!-- Channel Strips will be injected here by JS -->
+        <div class="btn-add-track" id="btn-add-track" title="Agregar Pista">+</div>
+    </div>
+
+    <!-- Global Transport (Moved out of master-controls for shared access, or kept in master-controls and duplicated/managed by JS? 
+         Let's keep the existing buttons in master-controls for now and add a separate transport for mixing if needed, 
+         OR just hide master-controls and show a global transport. 
+         For simplicity, I will duplicate playing logic or use the existing buttons if they are visible. 
+         Actually, let's ADD a dedicated global transport bar that is always visible if we switch modes.
+         But to save time, I will just let the JS manage visibility of elements. 
+    -->
+    <div id="global-transport" class="master-controls"
+        style="display:none; justify-content: center; margin-bottom: 20px;">
+        <button id="global-play" class="btn-control">PLAY MIX</button>
+        <button id="global-stop" class="btn-control">STOP</button>
+        <button id="global-export" class="btn-control">EXPORT MIX</button>
+    </div>
+
     </header>
 
 
@@ -179,6 +208,61 @@
                     <div class="switch-wrapper">
                         <button class="switch-btn active" data-val="tape">TAPE</button>
                         <button class="switch-btn" data-val="tube">TUBE</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4.5. Delay (Mixing Only) -->
+        <section class="module mixing-only-module hidden" id="delay-module">
+            <div class="module-header">
+                <h2>DELAY</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Time</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="1000" value="250" class="knob" id="delay-time">
+                        <span class="value-display">250 ms</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Feedback</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="90" value="30" class="knob" id="delay-feedback">
+                        <span class="value-display">30 %</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Mix</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="100" value="0" class="knob" id="delay-mix">
+                        <span class="value-display">0 %</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4.6. Reverb (Mixing Only) -->
+        <section class="module mixing-only-module hidden" id="reverb-module">
+            <div class="module-header">
+                <h2>REVERB</h2>
+                <button class="power-btn active" aria-label="Toggle Module"></button>
+            </div>
+            <div class="module-content">
+                <div class="control-group">
+                    <label>Size</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0.1" max="5" step="0.1" value="2.0" class="knob" id="verb-size">
+                        <span class="value-display">2.0 s</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Mix</label>
+                    <div class="knob-wrapper">
+                        <input type="range" min="0" max="100" value="0" class="knob" id="verb-mix">
+                        <span class="value-display">0 %</span>
                     </div>
                 </div>
             </div>
