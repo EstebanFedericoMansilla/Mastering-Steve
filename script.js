@@ -69,6 +69,156 @@ document.addEventListener('DOMContentLoaded', () => {
     const masteringUI = document.getElementById('mastering-ui');
     const mixingUI = document.getElementById('mixing-ui');
 
+    // --- PRESET TARGET / PREMIUM UI ---
+    const targetSelect = document.getElementById('target-select');
+    const btnBuy = document.getElementById('btn-buy');
+    const paymentModal = document.getElementById('payment-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const btnSavePreset = document.getElementById('btn-save-preset');
+    const btnLoadPreset = document.getElementById('btn-load-preset');
+    const presetUploadInput = document.getElementById('preset-upload-input-file') || document.getElementById('preset-upload-input');
+
+    if (targetSelect) {
+        targetSelect.addEventListener('change', (e) => {
+            if (!activeTrack || !activeTrack.fx) return;
+            const target = e.target.value;
+            const s = activeTrack.fx.settings;
+
+            if (target === 'default') {
+                s.limCeiling = -0.1;
+                s.limGain = 0;
+            } else if (target === 'spotify' || target === 'youtube') {
+                s.limCeiling = -1.0;
+                s.limGain = 4.0;
+            } else if (target === 'apple') {
+                s.limCeiling = -1.0;
+                s.limGain = 2.5;
+            } else if (target === 'cd') {
+                s.limCeiling = -0.1;
+                s.limGain = 9.0;
+                if (parseFloat(s.compThresh) > -15) s.compThresh = -20;
+            }
+
+            loadSettingsToUI(s);
+            updateAudioParams();
+        });
+    }
+
+    if (btnBuy && paymentModal) {
+        btnBuy.addEventListener('click', () => {
+            paymentModal.style.display = 'block';
+        });
+    }
+
+    if (closeModal && paymentModal) {
+        closeModal.addEventListener('click', () => {
+            paymentModal.style.display = 'none';
+        });
+    }
+
+    window.addEventListener('click', (e) => {
+        if (paymentModal && e.target === paymentModal) paymentModal.style.display = 'none';
+    });
+
+    // --- Save/Load Preset File Logic ---
+    if (btnSavePreset) {
+        btnSavePreset.addEventListener('click', () => {
+            if (!activeTrack || !activeTrack.fx) return;
+            const s = activeTrack.fx.settings;
+            const preset = {
+                target_platform: targetSelect ? targetSelect.value : 'default',
+                genre: genreSelect ? genreSelect.value : undefined,
+                subtractive_eq: {
+                    low_cut: s.subLow,
+                    mid_dip: s.subMid,
+                    high_cut: s.subHigh
+                },
+                additive_eq: {
+                    low_boost: s.addLow,
+                    presence: s.addMid,
+                    air: s.addHigh
+                },
+                compression: {
+                    threshold: s.compThresh,
+                    ratio: s.compRatio,
+                    makeup: s.compMakeup
+                },
+                saturation: {
+                    drive: s.satDrive,
+                    type: s.satType
+                },
+                limiter: {
+                    ceiling: s.limCeiling,
+                    gain: s.limGain
+                }
+            };
+            const blob = new Blob([JSON.stringify(preset, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mastering_steve_preset.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    if (btnLoadPreset && presetUploadInput) {
+        btnLoadPreset.addEventListener('click', () => presetUploadInput.click());
+        presetUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const p = JSON.parse(event.target.result);
+                    if (!activeTrack || !activeTrack.fx) return;
+                    const s = activeTrack.fx.settings;
+                    if (p.target_platform && targetSelect) targetSelect.value = p.target_platform;
+                    if (p.genre && genreSelect) {
+                        let key = String(p.genre).toLowerCase().trim();
+                        if (key === 'rock  tight' || key === 'rock-tight') key = 'rock';
+                        if (key === 'metal') key = 'metal';
+                        if (key === 'hip-hop' || key === 'hip hop') key = 'reggaeton';
+
+                        if (Array.from(genreSelect.options).some(opt => opt.value === key)) {
+                            genreSelect.value = key;
+                        }
+                    }
+                    if (p.subtractive_eq) {
+                        s.subLow = p.subtractive_eq.low_cut;
+                        s.subMid = p.subtractive_eq.mid_dip;
+                        s.subHigh = p.subtractive_eq.high_cut;
+                    }
+                    if (p.additive_eq) {
+                        s.addLow = p.additive_eq.low_boost;
+                        s.addMid = p.additive_eq.presence;
+                        s.addHigh = p.additive_eq.air;
+                    }
+                    if (p.compression) {
+                        s.compThresh = p.compression.threshold;
+                        s.compRatio = p.compression.ratio;
+                        s.compMakeup = p.compression.makeup;
+                    }
+                    if (p.saturation) {
+                        s.satDrive = p.saturation.drive;
+                        s.satType = p.saturation.type;
+                    }
+                    if (p.limiter) {
+                        s.limCeiling = p.limiter.ceiling;
+                        s.limGain = p.limiter.gain;
+                    }
+                    loadSettingsToUI(s);
+                    updateAudioParams();
+                    alert('✅ Preset cargado correctamente.');
+                } catch (err) {
+                    console.error("Error parsing preset:", err);
+                    alert('❌ Error al cargar el preset. Asegúrate de que sea un archivo .json válido.');
+                } finally { e.target.value = ''; }
+            };
+            reader.readAsText(file);
+        });
+    }
+
     // Mixer UI
     const mixerContainer = document.getElementById('mixing-ui');
     const btnAddTrack = document.getElementById('btn-add-track');
@@ -176,6 +326,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
         punk: { subtractive_eq: { low_cut: 40, mid_dip: -2, high_cut: 18000 }, additive_eq: { low_boost: 3, presence: 2, air: 1 }, compression: { threshold: -15, ratio: 4, makeup: 2 }, saturation: { drive: 25, type: 'tape' }, limiter: { ceiling: -0.5, gain: 1 }, delay: { time: 120, feedback: 10, mix: 0 }, reverb: { size: 1.0, mix: 0 } },
         country: { subtractive_eq: { low_cut: 45, mid_dip: -1.5, high_cut: 18000 }, additive_eq: { low_boost: 2, presence: 3.5, air: 1.5 }, compression: { threshold: -15, ratio: 3, makeup: 2 }, saturation: { drive: 20, type: 'tube' }, limiter: { ceiling: -0.5, gain: 2 }, delay: { time: 250, feedback: 30, mix: 0 }, reverb: { size: 2.5, mix: 10 } },
         reggaeton: { subtractive_eq: { low_cut: 25, mid_dip: 0, high_cut: 18500 }, additive_eq: { low_boost: 5, presence: 1, air: 2 }, compression: { threshold: -22, ratio: 3.5, makeup: 3 }, saturation: { drive: 40, type: 'tape' }, limiter: { ceiling: -0.1, gain: 4 }, delay: { time: 250, feedback: 30, mix: 0 }, reverb: { size: 1.0, mix: 2 } },
+        classical: { subtractive_eq: { low_cut: 20, mid_dip: 0, high_cut: 20000 }, additive_eq: { low_boost: 0, presence: 1, air: 1 }, compression: { threshold: -10, ratio: 1.5, makeup: 1 }, saturation: { drive: 0, type: 'tube' }, limiter: { ceiling: -0.5, gain: 0.5 }, delay: { time: 250, feedback: 0, mix: 0 }, reverb: { size: 4.0, mix: 15 } },
         youtube: { subtractive_eq: { low_cut: 90, mid_dip: -2, high_cut: 16000 }, additive_eq: { low_boost: 1, presence: 4, air: 1 }, compression: { threshold: -24, ratio: 4, makeup: 4 }, saturation: { drive: 10, type: 'tape' }, limiter: { ceiling: -1.0, gain: 3 }, delay: { time: 250, feedback: 30, mix: 0 }, reverb: { size: 1.0, mix: 5 } }
     };
 
@@ -560,18 +711,18 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
             const mf = masterStrip.querySelector('.master-fader');
             mf.addEventListener('input', (e) => {
                 const v = parseFloat(e.target.value);
-                try { mixMasterNode.gain.value = v; } catch (err) {}
+                try { mixMasterNode.gain.value = v; } catch (err) { }
             });
 
             mixerContainer.insertBefore(masterStrip, btnAddTrack);
         }
 
         mixTracks.forEach(track => {
-                const strip = document.createElement('div');
-                const isSelectedClass = track.id === selectedMixTrackId ? 'selected' : '';
-                const isMultiClass = multiSelectedTrackIds.has(track.id) ? 'multi-selected' : '';
-                strip.className = `channel-strip ${isSelectedClass} ${isMultiClass}`;
-                strip.dataset.trackId = track.id;
+            const strip = document.createElement('div');
+            const isSelectedClass = track.id === selectedMixTrackId ? 'selected' : '';
+            const isMultiClass = multiSelectedTrackIds.has(track.id) ? 'multi-selected' : '';
+            strip.className = `channel-strip ${isSelectedClass} ${isMultiClass}`;
+            strip.dataset.trackId = track.id;
             strip.innerHTML = `
                 <div class="channel-name" title="${track.name}">${track.name}</div>
                 <div class="channel-controls">
@@ -1021,7 +1172,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
                 const up = key === 'q';
                 let cur = typeof mixMasterNode.gain.value === 'number' ? mixMasterNode.gain.value : 1;
                 let next = up ? Math.min(2, cur + step) : Math.max(0, cur - step);
-                try { mixMasterNode.gain.value = next; } catch (err) {}
+                try { mixMasterNode.gain.value = next; } catch (err) { }
                 const mf = document.querySelector('.master-fader');
                 if (mf) mf.value = next;
                 e.preventDefault();
@@ -1230,6 +1381,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
             btnLoad.textContent = 'LOAD TRACK';
             btnPlay.disabled = false;
             btnExport.disabled = false;
+            if (btnSavePreset) btnSavePreset.disabled = false;
 
             // Connect mastering track if we are in mastering mode
             if (appMode === 'mastering') {
@@ -1274,6 +1426,12 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
             let duration = 0;
             if (appMode === 'mastering') {
                 duration = masteringTrack.buffer.duration;
+
+                // En modo demo (sin PRO) limitar a 60 segundos, igual que en la versión V6
+                const isFullVersion = document.body.classList.contains('full-access');
+                if (!isFullVersion) {
+                    duration = Math.min(duration, 60);
+                }
             } else {
                 mixTracks.forEach(t => {
                     if (t.buffer && t.buffer.duration > duration) duration = t.buffer.duration;
@@ -1307,7 +1465,13 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = (appMode === 'mastering') ? 'Mastered_Track_Steve.wav' : 'Mix_Session_Steve.wav';
+
+            if (appMode === 'mastering') {
+                const isFullVersion = document.body.classList.contains('full-access');
+                a.download = isFullVersion ? 'Mastered_Track_Steve.wav' : 'Mastered_Demo_60s_Steve.wav';
+            } else {
+                a.download = 'Mix_Session_Steve.wav';
+            }
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -1495,15 +1659,27 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
 
     window.applyPresetByGenre = function (genre) {
         if (!activeTrack) return;
-        // Try instrument match first if in mixing mode
+        if (!genre) return;
+
+        // Normalizar nombre de género/estilo que puede venir del wizard
+        let key = String(genre).toLowerCase().trim();
+
+        if (key === 'rock  tight' || key === 'rock-tight') key = 'rock';
+        if (key === 'hip-hop' || key === 'hip hop') key = 'reggaeton';
+
         let preset;
         if (appMode === 'mixing') {
-            // Basic naive mapping of genre string to instrument key if possible
-            // But wizard sends 'pop', 'rock'. 
-            // If user asks for "Kick", the wizard might send "kick" if updated.
-            preset = instrumentPresets[genre] || genrePresets[genre] || genrePresets['pop'];
+            // En mixing primero intentamos instrumento, luego género
+            preset = instrumentPresets[key] || genrePresets[key] || genrePresets['pop'];
         } else {
-            preset = genrePresets[genre] || genrePresets['pop'];
+            preset = genrePresets[key] || genrePresets['pop'];
+        }
+
+        if (!preset) return;
+
+        // Sincronizar el dropdown de presets si existe
+        if (genreSelect && Array.from(genreSelect.options).some(opt => opt.value === key)) {
+            genreSelect.value = key;
         }
 
         const s = activeTrack.fx.settings;
@@ -1568,7 +1744,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
         }
 
         // Ensure mixer UI reflects label change
-        try { renderMixer(); } catch (e) {}
+        try { renderMixer(); } catch (e) { }
     }
 
     function applyInstrumentPresetToTrack(track, instrKey) {
@@ -1615,7 +1791,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
         }
 
         // Ensure mixer UI reflects label change
-        try { renderMixer(); } catch (e) {}
+        try { renderMixer(); } catch (e) { }
     }
 
     function applySettingsToFX(track) {
@@ -1668,7 +1844,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
         if (nodes.reverbNode) {
             const isVerbBypassed = isBypassedFlag(s.bypassVerb);
             if (s.verbSize) {
-                try { nodes.reverbNode.buffer = makeImpulseResponse(audioCtx, s.verbSize, s.verbSize); } catch (e) {}
+                try { nodes.reverbNode.buffer = makeImpulseResponse(audioCtx, s.verbSize, s.verbSize); } catch (e) { }
             }
             const rMix = (s.verbMix || 0) / 100;
             if (isVerbBypassed) {
@@ -1715,6 +1891,19 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
     function saveMasterSettings() {
         if (activeTrack !== masteringTrack) return;
         localStorage.setItem('masteringSteveSettings', JSON.stringify(activeTrack.fx.settings));
+    }
+
+    function loadMasterSettings() {
+        const saved = localStorage.getItem('masteringSteveSettings');
+        if (saved && masteringTrack) {
+            try {
+                const s = JSON.parse(saved);
+                masteringTrack.fx.settings = Object.assign({}, masteringTrack.fx.settings, s);
+                if (activeTrack === masteringTrack) loadSettingsToUI(masteringTrack.fx.settings);
+            } catch (e) {
+                console.error("Error loading saved settings:", e);
+            }
+        }
     }
 
     // --- Session Save / Load ---
@@ -1849,5 +2038,6 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
 
     // Default init
     initAudioContext();
+    loadMasterSettings();
     updatePresetDropdown('mastering');
 });
