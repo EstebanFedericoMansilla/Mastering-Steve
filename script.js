@@ -1255,6 +1255,33 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
     // Global Bypass
     const bypassAllBtn = document.getElementById('bypass-all');
     let allBypassed = false;
+
+    function clearGlobalBypassAndEnableAllModules(track) {
+        allBypassed = false;
+        if (bypassAllBtn) {
+            bypassAllBtn.style.background = 'transparent';
+            bypassAllBtn.style.color = 'var(--accent-lim)';
+        }
+
+        const t = track || activeTrack;
+        if (t && t.fx && t.fx.settings) {
+            t.fx.settings.bypassSub = false;
+            t.fx.settings.bypassAdd = false;
+            t.fx.settings.bypassComp = false;
+            t.fx.settings.bypassSat = false;
+            t.fx.settings.bypassLim = false;
+            t.fx.settings.bypassDelay = false;
+            t.fx.settings.bypassVerb = false;
+        }
+
+        const modules = document.querySelectorAll('.module');
+        modules.forEach(mod => {
+            mod.classList.remove('disabled');
+            const btn = mod.querySelector('.power-btn');
+            if (btn) btn.classList.add('active');
+        });
+    }
+
     bypassAllBtn.addEventListener('click', () => {
         allBypassed = !allBypassed;
         bypassAllBtn.style.background = allBypassed ? 'var(--accent-lim)' : 'transparent';
@@ -1289,6 +1316,8 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
 
             const preset = (appMode === 'mastering') ? genrePresets[val] : instrumentPresets[val];
             if (preset) {
+                if (allBypassed) clearGlobalBypassAndEnableAllModules(activeTrack);
+
                 const s = activeTrack.fx.settings;
                 // Map...
                 s.subLow = preset.subtractive_eq.low_cut;
@@ -1685,6 +1714,8 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
         }
 
         if (!preset) return;
+
+        if (allBypassed) clearGlobalBypassAndEnableAllModules(activeTrack);
 
         // Sincronizar el dropdown de presets si existe
         if (genreSelect && Array.from(genreSelect.options).some(opt => opt.value === key)) {
