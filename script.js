@@ -915,6 +915,13 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
         const isSatBypassed = document.getElementById('saturation').classList.contains('disabled');
         const isLimBypassed = document.getElementById('limiter').classList.contains('disabled');
 
+        // --- NEW: SYNC SETTINGS WITH DOM BYPASS STATE ---
+        s.bypassSub = isEqSubBypassed;
+        s.bypassAdd = isEqAddBypassed;
+        s.bypassComp = isCompBypassed;
+        s.bypassSat = isSatBypassed;
+        s.bypassLim = isLimBypassed;
+
         // Read UI & Apply (or Bypass)
         s.subLow = document.getElementById('sub-low-freq').value;
         s.subMid = document.getElementById('sub-mid-gain').value;
@@ -998,6 +1005,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
 
             const isDelayMod = document.getElementById('delay-module');
             const isDelayBypassed = isDelayMod && isDelayMod.classList.contains('disabled');
+            s.bypassDelay = isDelayBypassed; // Sync setting
 
             if (isDelayBypassed) {
                 nodes.delayWetNode.gain.value = 0;
@@ -1017,6 +1025,7 @@ S / Z (o teclas mapeadas) → Ajustan pistas seleccionadas si existen, sino la p
 
             const isVerbMod = document.getElementById('reverb-module');
             const isVerbBypassed = isVerbMod && isVerbMod.classList.contains('disabled');
+            s.bypassVerb = isVerbBypassed; // Sync setting
 
             // Note: Reverb buffer update handled by 'change' event listener, not here.
 
